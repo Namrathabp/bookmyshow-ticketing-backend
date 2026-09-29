@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: docker.io/library/mysql:8.0
+    container_name: bms_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bookmyshow
+      MYSQL_USER: bms_user
+      MYSQL_PASSWORD: bms_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql:Z
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro,Z
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    networks:
+      - bms_network
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: bms_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data:Z
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "redis_password"]
+    networks:
+      - bms_network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  bms_network:
+    driver: bridge
